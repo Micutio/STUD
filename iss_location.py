@@ -34,6 +34,8 @@ class IssLocation:
 
     def set_iss_loc(self):
         # Get json data with current location of ISS
+        # Use additional headers to avoid caching
+        headers = {'Cache-Control', 'max-age=0'}
         _buf = requests.get(self.url)
         self.data_dict = _buf.json()
         # print(data_dict)
@@ -47,7 +49,10 @@ class IssLocation:
         """
         import urllib.request
         import json
-        with urllib.request.urlopen(self.url) as response:
+        req = urllib.request.Request(self.url)
+        req.add_header('Cache-Control', 'max-age=0')
+        with urllib.request.urlopen(req) as response:
+            # print(response.info())
             self.data_dict = json.loads(response.read().decode(response.info().get_param('charset') or 'utf-8'))
             self.iss_lat = self.data_dict['iss_position']['latitude']
             self.iss_lon = self.data_dict['iss_position']['longitude']
@@ -62,7 +67,8 @@ class IssLocation:
             while True:
                 # TODO: Handle errors when geocoder unavailable
                 try:
-                    self.set_iss_loc_alternative()
+                    self.set_iss_loc()
+                    # self.set_iss_loc_alternative()
                     loc = self.get_location_for_coords()
                     print('ISS location >>> lat: {0}, lon: {1}'.format(self.iss_lat, self.iss_lon))
                     if loc is not None:
