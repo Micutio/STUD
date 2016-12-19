@@ -1,6 +1,15 @@
 """
 Module for retrieving and displaying the geographic location of the International Space Station.
+
+Requires:
+    geopy
+
+Updates:
+    18-12-2016: Initial draft of ISS location service as separate class
 """
+
+# TODO: Add timestamp (of local time) to location output, if not above ocean.
+
 
 import traceback
 import time
