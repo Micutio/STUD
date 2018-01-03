@@ -5,13 +5,13 @@ Updates:
     16-12-16: Display location of ISS (lat, lon)
 """
 
-from iss_location import IssLocation 
+from iss_location import IssLocation
 
 __author__ = 'Michael Wagner'
 
 
 def startup():
-    print('>>> S.T.U.D. - Space Telemetry')
+    print('S.T.U.D. - Space Telemetry Utility Display')
 
 
 if __name__ == '__main__':
