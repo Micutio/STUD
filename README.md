@@ -10,7 +10,7 @@ A command line based application that outputs live telemetry of objects in space
 
 ## Gallery
 
-![alt text](https://github.com/micutio/STUD/media/iss_scrn.png "screenshot iss live tracker")
+![alt text](https://github.com/Micutio/STUD/blob/master/media/iss_scrn.png "screenshot iss live tracker")
 
 ## Dependencies
 
