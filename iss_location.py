@@ -10,15 +10,18 @@ Updates:
 
 # TODO: Add timestamp (of local time) to location output, if not above ocean.
 
+import os
 import traceback
 import time
 import requests
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
+from geopy.exc import GeocoderUnavailable
 
 
 __author__ = 'Michael Wagner'
 
+cycle_time = 15
 
 class IssLocation:
 
@@ -74,9 +77,13 @@ class IssLocation:
                     if loc is not None:
                         print('below: {0}'.format(loc))
                 except GeocoderTimedOut as e:
-                    print('Error: Geocode Timeout. Trying again in 30 sec...')
+                    print('Error: geocoder timeout. Retry in {} sec...'.format(cycle_time))
                     # traceback.print_exc()
-                time.sleep(30)
+                except GeocoderUnavailable as e:
+                    print('Error: geocoder unavailable. Retry in {} sec...'.format(cycle_time))
+                except OSError as e:
+                    print('Error: network connection interrupt. Retry in {} sec...'.format(cycle_time))
+                time.sleep(cycle_time)
         except KeyboardInterrupt:
             print("\n")
             print("terminating service")
