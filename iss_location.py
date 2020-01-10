@@ -11,9 +11,11 @@ Updates:
 # TODO: Add timestamp (of local time) to location output, if not above ocean.
 
 import os
+import sys
 import traceback
 import time
 import requests
+from collections import defaultdict
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 from geopy.exc import GeocoderUnavailable
@@ -22,6 +24,7 @@ from geopy.exc import GeocoderUnavailable
 __author__ = 'Michael Wagner'
 
 cycle_time = 15
+
 
 class IssLocation:
 
@@ -33,7 +36,7 @@ class IssLocation:
         self.url = 'http://api.open-notify.org/iss-now.json'
 
     def init_geolocator(self):
-        self.geolocator =  Nominatim()
+        self.geolocator = Nominatim()
 
     def set_iss_loc(self):
         # Get json data with current location of ISS
@@ -56,7 +59,8 @@ class IssLocation:
         req.add_header('Cache-Control', 'max-age=0')
         with urllib.request.urlopen(req) as response:
             # print(response.info())
-            self.data_dict = json.loads(response.read().decode(response.info().get_param('charset') or 'utf-8'))
+            self.data_dict = json.loads(response.read().decode(
+                response.info().get_param('charset') or 'utf-8'))
             self.iss_lat = self.data_dict['iss_position']['latitude']
             self.iss_lon = self.data_dict['iss_position']['longitude']
 
@@ -65,25 +69,55 @@ class IssLocation:
         # print(location.raw)
         return location.address
 
-    def start_service(self):
+    def run_service(self):
         try:
+            err_printer = ErrorPrinter()
             while True:
-                # TODO: Handle errors when geocoder unavailable
                 try:
                     self.set_iss_loc()
                     # self.set_iss_loc_alternative()
                     loc = self.get_location_for_coords()
-                    print('ISS location >>> lat: {0}, lon: {1}'.format(self.iss_lat, self.iss_lon))
+                    err_printer.reset()
+                    print('ISS location >>> lat: {0}, lon: {1}'.format(
+                        self.iss_lat, self.iss_lon))
                     if loc is not None:
-                        print('below: {0}'.format(loc))
+                        print('             >>> {0}'.format(loc))
                 except GeocoderTimedOut as e:
-                    print('Error: geocoder timeout. Retry in {} sec...'.format(cycle_time))
-                    # traceback.print_exc()
+                    err_printer.handle('network timeout')
                 except GeocoderUnavailable as e:
-                    print('Error: geocoder unavailable. Retry in {} sec...'.format(cycle_time))
+                    err_printer.handle('network unavailable')
                 except OSError as e:
-                    print('Error: network connection interrupt. Retry in {} sec...'.format(cycle_time))
+                    err_printer.handle('connection interrupt')
                 time.sleep(cycle_time)
         except KeyboardInterrupt:
             print("\n")
             print("terminating service")
+
+
+class ErrorPrinter:
+
+    def __init__(self):
+        self.errs = defaultdict(int)
+        self.blank = " " * 80
+
+    def reset(self):
+        if len(self.errs) > 0:
+            print()
+        self.errs.clear()
+
+    def handle(self, reason):
+        sys.stdout.write('\r' + self.blank)
+
+        self.errs[reason] += 1
+        if len(self.errs) == 1:
+            count = self.errs[reason]
+            if count <= 1:
+                sys.stdout.write(
+                    '\r       Error >>> {0}. Retry in {1} sec...'.format(reason, cycle_time))
+            else:
+                sys.stdout.write('\r       Error >>> {0} (x{1}). Retry in {2} sec...'.format(
+                    reason, count, cycle_time))
+        else:
+            sys.stdout.write(
+                '\r       Error >>> Multiple issues. Retry in {} sec...'.format(cycle_time))
+        sys.stdout.flush()

@@ -20,4 +20,4 @@ if __name__ == '__main__':
     # Start the only service we have right now.
     issLoc = IssLocation()
     issLoc.init_geolocator()
-    issLoc.start_service()
+    issLoc.run_service()
