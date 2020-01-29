@@ -113,11 +113,14 @@ class ErrorPrinter:
             count = self.errs[reason]
             if count <= 1:
                 sys.stdout.write(
-                    '\r       Error >>> {0}. Retry in {1} sec...'.format(reason, cycle_time))
+                    '\r       error >>> {0} --- retry in {1} sec...'.format(reason, cycle_time))
             else:
-                sys.stdout.write('\r       Error >>> {0} (x{1}). Retry in {2} sec...'.format(
+                sys.stdout.write('\r       error >>> {0} (x{1}) --- retry in {2} sec...'.format(
                     reason, count, cycle_time))
         else:
+            total_counts = 0
+            for _, v in self.errs.items():
+                total_counts += v
             sys.stdout.write(
-                '\r       Error >>> Multiple issues. Retry in {} sec...'.format(cycle_time))
+                '\r       error >>> multiple issues (x{0}) --- retry in {1} sec...'.format(total_counts, cycle_time))
         sys.stdout.flush()
